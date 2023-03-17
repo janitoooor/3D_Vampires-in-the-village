@@ -10,6 +10,8 @@ public class Unit : SelectableObject
     [SerializeField] private Animator _animator;
     [SerializeField] private NavMeshAgent _navMeshAgent;
 
+    private readonly float _valueToStopAnimation = 0.1f;
+
     public override void Start()
     {
         base.Start();
@@ -18,7 +20,7 @@ public class Unit : SelectableObject
 
     private void Update()
     {
-        if (_navMeshAgent.velocity.magnitude < 0.1f)
+        if (_navMeshAgent.velocity.magnitude < _valueToStopAnimation)
             _animator.SetBool(IS_MOVE_BOOL, false);
         else
             _animator.SetBool(IS_MOVE_BOOL, true);
