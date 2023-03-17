@@ -812,8 +812,8 @@ PlayerSettings:
   apiCompatibilityLevelPerPlatform: {}
   m_RenderingPath: 1
   m_MobileRenderingPath: 1
-  metroPackageName: Vampires in the village
-  metroPackageVersion: 
+  metroPackageName: Vampiresinthevillage
+  metroPackageVersion: 1.0.0.0
   metroCertificatePath: 
   metroCertificatePassword: 
   metroCertificateSubject: 
@@ -821,7 +821,7 @@ PlayerSettings:
   metroCertificateNotAfter: 0000000000000000
   metroApplicationDescription: Vampires in the village
   wsaImages: {}
-  metroTileShortName: 
+  metroTileShortName: Vampires in the village
   metroTileShowName: 0
   metroMediumTileShowName: 0
   metroLargeTileShowName: 0
