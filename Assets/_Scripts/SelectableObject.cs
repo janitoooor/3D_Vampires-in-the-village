@@ -31,4 +31,6 @@ public abstract class SelectableObject : MonoBehaviour
     {
         _selectionIndicator.SetActive(false);
     }
+
+    public abstract void ClickOnGround(Vector3 point);
 }
