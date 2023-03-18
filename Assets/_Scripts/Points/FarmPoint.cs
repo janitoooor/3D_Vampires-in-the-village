@@ -2,7 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class FarmPoint : MonoBehaviour
+public class FarmPoint : InteractPoint
 {
-    
+
 }
+
+
+
