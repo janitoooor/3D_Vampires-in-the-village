@@ -5,13 +5,13 @@ using UnityEngine.UI;
 
 public class InteractUI : MonoBehaviour
 {
-    [SerializeField] private NpcCharacter _npcFarmer;
+    [SerializeField] private NpcCharacter _npcCharacter;
     [SerializeField] private GameObject _interactImage;
 
     private void Start()
     {
-        _npcFarmer.OnNpcTriggerEnter += NpcFarmer_OnNPCTryAttack;
-        _npcFarmer.OnNpcTriggerExit += NpcFarmer_OnNpcTriggerExit;
+        _npcCharacter.OnNpcTriggerEnter += NpcFarmer_OnNPCTryAttack;
+        _npcCharacter.OnNpcTriggerExit += NpcFarmer_OnNpcTriggerExit;
 
         Hide();
     }
