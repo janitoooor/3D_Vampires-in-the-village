@@ -4,50 +4,94 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
-public class NpcCharacter : MonoBehaviour
+public abstract class NpcCharacter : MonoBehaviour, IHoverObject
 {
     public event EventHandler OnNpcTriggerEnter;
     public event EventHandler OnNpcTriggerExit;
+    public event EventHandler OnNpcWarningStateExit;
+    public event EventHandler OnNpcWarningStateEnter;
 
-    private const string IS_MOVE_BOOL = "IsMove";
-    private const string IS_FARMING_BOOL = "IsFarming";
+    private protected const string IS_MOVE_BOOL = "IsMove";
+    private protected const string DIE_TRIGGER = "Die";
+    private protected const string WARNING_BOOL = "Warning";
 
-    [SerializeField] private List<Transform> _transformPoints;
+    [SerializeField] private protected List<Transform> _transformPoints;
     [Space]
-    [SerializeField] private Animator _animator;
-    [SerializeField] private NavMeshAgent _navMeshAgent;
+    [SerializeField] private protected Animator _animator;
+    [SerializeField] private protected NavMeshAgent _navMeshAgent;
+    [SerializeField] private protected GameObject _selectionsIndicator;
     [Space]
-    [SerializeField] private float _raycastDistance;
-    [SerializeField] private LayerMask _pointInteractLayer;
+    [Header("Raycast to pointsInteract")]
+    [SerializeField] private protected float _raycastDistanceToPointInteract;
+    [SerializeField] private protected LayerMask _pointInteractLayer;
+    [Space]
+    [Header("Box raycast to player")]
+    [SerializeField] private protected float _raycastDistanceToPlayer;
+    [SerializeField] private protected float _npcRaycastRadius;
+    [SerializeField] private protected LayerMask _playerLayer;
+    [Space]
+    [Header("Coroutines Values")]
+    [SerializeField] private protected float _waitTimeToRunAway = 1.5f;
+    [Space]
+    [SerializeField] private protected float _fleeDistance = 5f;
 
-    private State _currentState;
+    private protected State _currentState;
 
-    private float _valueToStopAnimation = 0.1f;
+    private protected readonly float _valueToStopAnimation = 0.1f;
     private int _currentTransformPointIndex;
 
-    public void Start()
+    private protected bool _isStartDie;
+    private protected bool _isRunAway;
+
+    public virtual void Start()
     {
         _currentTransformPointIndex = _transformPoints.Count - 1;
-        _currentState = State.Move;
+        HideSelectionIndicator();
+        HideInteract();
+
+        ChangeState(State.Move);
     }
 
-    private void Update()
+    public virtual void Update()
     {
-        StateMachine();
         HandleInteraction();
+        StateMachine();
     }
 
-    public void ShowAttackPopup()
+    private protected virtual void OnDisable()
     {
-        OnNpcTriggerEnter?.Invoke(this, EventArgs.Empty);
+        PlayerVampire.Instance.TakeHealth();
     }
 
-    internal void HideAttackPopup()
+    public virtual void StartDie()
     {
-        OnNpcTriggerExit?.Invoke(this, EventArgs.Empty);
+        ChangeState(State.Die);
+        _animator.SetTrigger(DIE_TRIGGER);
     }
 
-    private void StateMachine()
+    public virtual void ShowSelectionIndicator()
+    {
+        _selectionsIndicator.SetActive(true);
+    }
+
+    public virtual void HideSelectionIndicator()
+    {
+        _selectionsIndicator.SetActive(false);
+    }
+
+    public virtual void ShowInteract()
+    {
+        if (!_isStartDie)
+            OnNpcTriggerEnter?.Invoke(this, EventArgs.Empty);
+    }
+
+    public virtual void HideInteract()
+    {
+        if (!_isStartDie)
+            OnNpcTriggerExit?.Invoke(this, EventArgs.Empty);
+    }
+
+    private protected virtual void StateMachine()
     {
         switch (_currentState)
         {
@@ -57,33 +101,68 @@ public class NpcCharacter : MonoBehaviour
             case State.Move:
                 InStateMove();
                 break;
-            case State.Farming:
-                InStateFarming();
+            case State.Die:
+                InStateDie();
                 break;
-            case State.Attack:
+            case State.RunAway:
+                InStateRunAway();
+                break;
+            case State.Warning:
+                InStateWarning();
                 break;
         }
     }
 
-    private void InStateIdle()
+    private protected virtual void ChangeState(State state)
+    {
+        _currentState = state;
+    }
+
+    private protected virtual void InStateWarning()
+    {
+        OnNpcWarningStateEnter?.Invoke(this, EventArgs.Empty);
+        _animator.SetBool(IS_MOVE_BOOL, false);
+        _animator.SetBool(WARNING_BOOL, true);
+        _navMeshAgent.isStopped = true;
+
+        if (!_isStartDie)
+            StartCoroutine(WarningWaitToRunAway());
+    }
+
+    private IEnumerator WarningWaitToRunAway()
+    {
+        yield return new WaitForSeconds(_waitTimeToRunAway);
+
+        if (_navMeshAgent.velocity.magnitude > _valueToStopAnimation)
+            _animator.SetBool(WARNING_BOOL, false);
+
+        float distanceToPlayer = Vector3.Distance(transform.position, PlayerVampire.Instance.transform.position);
+
+        if (distanceToPlayer < _fleeDistance)
+            ChangeState(State.RunAway);
+        else
+            ChangeState(State.Move);
+
+        OnNpcWarningStateExit?.Invoke(this, EventArgs.Empty);
+    }
+
+    private protected virtual void InStateDie()
     {
         _animator.SetBool(IS_MOVE_BOOL, false);
+        _animator.SetBool(WARNING_BOOL, false);
         _navMeshAgent.isStopped = true;
     }
 
-    private void InStateFarming()
+    private protected virtual void InStateIdle()
     {
-        if (_navMeshAgent.velocity.magnitude < _valueToStopAnimation)
-        {
-            _animator.SetBool(IS_MOVE_BOOL, false);
-            _animator.SetBool(IS_FARMING_BOOL, true);
-        }
+        _animator.SetBool(IS_MOVE_BOOL, false);
+        _animator.SetBool(WARNING_BOOL, false);
+        _navMeshAgent.isStopped = true;
     }
 
-    private void InStateMove()
+    private protected virtual void InStateMove()
     {
         _navMeshAgent.isStopped = false;
-        _animator.SetBool(IS_FARMING_BOOL, false);
         _animator.SetBool(IS_MOVE_BOOL, true);
 
         if (_navMeshAgent.remainingDistance <= _navMeshAgent.stoppingDistance)
@@ -93,19 +172,49 @@ public class NpcCharacter : MonoBehaviour
         }
     }
 
-    private void HandleInteraction()
+    private IEnumerator WaitToStopRunAway()
     {
-        if (Physics.Raycast(transform.position, transform.forward, out RaycastHit raycastHit, _raycastDistance,
-           _pointInteractLayer))
+        yield return new WaitUntil(() =>
         {
-            if (raycastHit.transform.TryGetComponent(out InteractPoint interactPoint))
+            if (_currentState != State.Die)
             {
-                if (_currentState != State.Farming)
-                {
-                    _navMeshAgent.isStopped = true;
-                    _currentState = State.Farming;
-                }
+                float distanceToPlayer = Vector3.Distance(transform.position, PlayerVampire.Instance.transform.position);
+                return distanceToPlayer > _fleeDistance;
             }
+
+            return false;
+        });
+
+        ChangeState(State.Move);
+    }
+
+    private protected virtual void InStateRunAway()
+    {
+        if (_isStartDie)
+        {
+            ChangeState(State.Idle);
+            return;
         }
+
+        _isRunAway = true;
+        _navMeshAgent.isStopped = false;
+        _animator.SetBool(IS_MOVE_BOOL, true);
+
+        Vector3 direction = (transform.position - PlayerVampire.Instance.transform.position);
+        direction.Normalize();
+        Vector3 fleePosition = transform.position + direction * _fleeDistance;
+        _navMeshAgent.SetDestination(fleePosition);
+
+        StartCoroutine(WaitToStopRunAway());
+    }
+
+    private protected abstract void HandleInteraction();
+
+    public void StopMoveToStartDie()
+    {
+        ChangeState(State.Idle);
+        _navMeshAgent.isStopped = true;
+        HideInteract();
+        _isStartDie = true;
     }
 }
