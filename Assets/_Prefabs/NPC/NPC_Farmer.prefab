@@ -122,7 +122,7 @@ PrefabInstance:
     - target: {fileID: 3172178743991554789, guid: a41aaa85ec9cf9644a56b88b4d26a771,
         type: 3}
       propertyPath: m_Radius
-      value: 0.48
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 4203207216780439218, guid: a41aaa85ec9cf9644a56b88b4d26a771,
         type: 3}
@@ -288,8 +288,8 @@ MonoBehaviour:
   _pointInteractLayer:
     serializedVersion: 2
     m_Bits: 64
-  _raycastDistanceToPlayer: 2
-  _npcRaycastRadius: 2
+  _raycastDistanceToPlayer: 3
+  _npcRaycastRadius: 3
   _playerLayer:
     serializedVersion: 2
     m_Bits: 256

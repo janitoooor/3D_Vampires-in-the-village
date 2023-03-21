@@ -118,6 +118,11 @@ PrefabInstance:
       propertyPath: _npcCharacter
       value: 
       objectReference: {fileID: 1163869175756129083}
+    - target: {fileID: 3172178743991554789, guid: a41aaa85ec9cf9644a56b88b4d26a771,
+        type: 3}
+      propertyPath: m_Radius
+      value: 0.5
+      objectReference: {fileID: 0}
     - target: {fileID: 4555222839289276881, guid: a41aaa85ec9cf9644a56b88b4d26a771,
         type: 3}
       propertyPath: _npcFarmer

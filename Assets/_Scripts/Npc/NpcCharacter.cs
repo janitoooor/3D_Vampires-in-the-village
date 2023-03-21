@@ -61,6 +61,7 @@ public abstract class NpcCharacter : MonoBehaviour, IHoverObject
     private protected virtual void OnDisable()
     {
         PlayerVampire.Instance.TakeHealth();
+        Destroy(gameObject, 0.1f);
     }
 
     public virtual void StartDie()
@@ -213,7 +214,7 @@ public abstract class NpcCharacter : MonoBehaviour, IHoverObject
     public void StopMoveToStartDie()
     {
         ChangeState(State.Idle);
-        _navMeshAgent.isStopped = true;
+        _navMeshAgent.isStopped = true; 
         HideInteract();
         _isStartDie = true;
     }
