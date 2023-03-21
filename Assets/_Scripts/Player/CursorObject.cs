@@ -19,17 +19,23 @@ public class CursorObject : MonoBehaviour
     private void Start()
     {
         _cursorPointObject = Instantiate(_cursorPointObjectPrefab);
+
+        _currentSelectableObject = PlayerVampire.Instance;
     }
 
     private void Update()
     {
         Ray ray = _camera.ScreenPointToRay(Input.mousePosition);
         if (Physics.Raycast(ray, out RaycastHit hit))
+        {
+            ClickOnObject(hit);
             HoverObject(hit);
+        }
         else
+        {
             UnHoverCurrent();
+        }
 
-        ClickOnObject(hit);
     }
 
     private void HoverObject(RaycastHit hit)

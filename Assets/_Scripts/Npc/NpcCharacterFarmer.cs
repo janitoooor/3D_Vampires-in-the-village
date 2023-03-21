@@ -39,6 +39,7 @@ public class NpcCharacterFarmer : NpcCharacter
         if (Physics.BoxCast(transform.position, Vector3.one * _npcRaycastRadius, transform.forward,
                 Quaternion.identity, _raycastDistanceToPlayer, _playerLayer))
         {
+            print("Hit player");    
 
             if (_currentState == State.Move || _currentState == State.Farming)
                 ChangeState(State.Warning);

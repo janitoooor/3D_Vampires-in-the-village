@@ -10,7 +10,14 @@ using UnityEngine.Rendering;
 public class PlayerVampire : SelectableObject
 {
     public event EventHandler OnPlayerIsTakeDamage;
+    public event EventHandler OnGameOver;
+
     public event EventHandler OnPlayerIsTakeHealth;
+    public event EventHandler<OnUnlockGateEventArgs> OnUnlockGate;
+    public class OnUnlockGateEventArgs : EventArgs
+    {
+        public Gate Gate;
+    }
 
     public event EventHandler<OnAddIngridientToBoilerEventArgs> OnAddIngridientToBoiler;
     public class OnAddIngridientToBoilerEventArgs : EventArgs
@@ -40,7 +47,7 @@ public class PlayerVampire : SelectableObject
     [Space]
     [Header("Health values")]
     [SerializeField] private int _maxHealthPlayer = 6;
-    [SerializeField] private float _timeToTakeDamageByPoison = 5f;
+    [SerializeField] private float _timeToTakeDamageByPoison = 30f;
 
     public int MaxHealthPlayer => _maxHealthPlayer;
 
@@ -58,6 +65,8 @@ public class PlayerVampire : SelectableObject
     private IHoverObject _currentHoverObjectFollow;
 
     private Vector3 _currentFollowPosition;
+
+    private Gate _gate;
 
     private void Awake()
     {
@@ -77,6 +86,9 @@ public class PlayerVampire : SelectableObject
 
     private void GameInput_OnInteractAction(object sender, System.EventArgs e)
     {
+        if (_gate != null)
+            OpenGate();
+
         if (_currentHoverObject == null || _isInteract)
             return;
 
@@ -91,6 +103,21 @@ public class PlayerVampire : SelectableObject
             case InteractBoiler:
                 InteractWithBoiler();
                 break;
+        }
+
+
+    }
+
+    private void OpenGate()
+    {
+        if (_gate != null)
+        {
+            OnUnlockGate?.Invoke(this, new OnUnlockGateEventArgs
+            {
+                Gate = _gate,
+            });
+
+            _gate = null;
         }
     }
 
@@ -184,6 +211,8 @@ public class PlayerVampire : SelectableObject
     public void EndStateAttack()
     {
         ChangeState(State.Idle);
+        _currentHoverObject = null;
+        _currentHoverObjectFollow = null;
         _isInteract = false;
     }
 
@@ -242,7 +271,7 @@ public class PlayerVampire : SelectableObject
         if (_currentHealthPlayer > 0)
             StartCoroutine(ChangeHealthByPoison());
         else
-            print("Player is die");
+            OnGameOver?.Invoke(this, EventArgs.Empty);
     }
 
     private void ShowReadyForInteract()
@@ -259,6 +288,25 @@ public class PlayerVampire : SelectableObject
             {
                 OnRayCastUnHitHoverObject();
             }
+
+            if (raycastHit.transform.TryGetComponent(out Gate gate))
+            {
+                if (_gate == null)
+                {
+                    _gate = gate;
+                    _gate.ShowInteract();
+                }
+            }
+            else if (_gate != null && _currentState != State.Attack)
+            {
+                _gate.HideInteract();
+                _gate = null;
+            }
+        }
+        else if (_gate != null && _currentState != State.Attack)
+        {
+            _gate.HideInteract();
+            _gate = null;
         }
         else if (_currentHoverObject != null && _currentState != State.Attack)
         {
