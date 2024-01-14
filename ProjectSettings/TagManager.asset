@@ -7,6 +7,8 @@ TagManager:
   - Ground
   - Farm
   - Character
+  - InteractPoint
+  - Ingridient
   layers:
   - Default
   - TransparentFX
@@ -16,8 +18,8 @@ TagManager:
   - UI
   - InteractPoint
   - NPC
-  - 
-  - 
+  - Player
+  - Ingridients
   - 
   - 
   - 

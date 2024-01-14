@@ -10,4 +10,7 @@ public enum State
     Move,
     Attack,
     Farming,
+    Die,
+    RunAway,
+    Warning
 }
